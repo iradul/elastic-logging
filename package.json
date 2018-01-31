@@ -1,0 +1,30 @@
+{
+  "name": "elastic-logging",
+  "version": "0.0.1",
+  "description": "Log directly to ElasticSearch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iradul/elastic-log.git"
+  },
+  "keywords": [
+    "ElasticSearch",
+    "NodeJS",
+    "logging"
+  ],
+  "author": "Ivan Radulovic",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/iradul/elastic-log/issues"
+  },
+  "homepage": "https://github.com/iradul/elastic-log#readme",
+  "dependencies": {
+    "h2tp": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.0"
+  }
+}

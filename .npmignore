@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+.npmignore
+.gitignore
+index.ts
+index.js.map
+tsconfig.json
+README.md
