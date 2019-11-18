@@ -1,7 +1,4 @@
-import * as os from 'os';
-import * as path from 'path';
 import { httpreq } from 'h2tp';
-import { setInterval, setTimeout, clearTimeout } from 'timers';
 
 export interface IField {
     type: "text" | "keyword" | "date" | "long" | "double" | "boolean" | "ip" | "object" | "nested" | "geo_point" | "geo_shape" | "completion";
@@ -17,6 +14,25 @@ interface ESIndex {
     created: number;
 }
 
+interface ESInfo {
+    name : string;
+    cluster_name : string;
+    cluster_uuid : string;
+    version : {
+      number : string;
+      build_flavor : string;
+      build_type : string;
+      build_hash : string;
+      build_date : string;
+      build_snapshot : boolean;
+      lucene_version : string;
+      minimum_wire_compatibility_version : string;
+      minimum_index_compatibility_version : string;
+    },
+    tagline : string;
+  }
+  
+
 /**
  * Application logging system
  * Logs to Elasticsearch
@@ -31,6 +47,7 @@ export class Logging {
     private cleanTID: any;
     private indexes: { [name: string]: ESIndex } = {};
     private todo: ESIndex[] = [];
+    private esVersion!: { major: number, minor: number, patch: number };
 
     constructor(public elasticServer: string) {
         this.elasticPush();
@@ -41,6 +58,29 @@ export class Logging {
         }
         process.on('SIGINT', die);
         process.on('SIGTERM', die);
+    }
+
+    public load() {
+        return httpreq(`http://${this.elasticServer}`)
+            .then(r => {
+                if (r.response.statusCode === 200) {
+                    const info: ESInfo = JSON.parse(r.body);
+                    const rex = /^(\d+)\.(\d+)\.(\d+)/.exec(info.version.number);
+                    if (rex) {
+                        this.esVersion = {
+                            major: +rex[1],
+                            minor: +rex[2],
+                            patch: +rex[3],
+                        }
+                        return Promise.resolve();
+                    }
+                    return Promise.reject(`Invalid elasticsearch server:\n${JSON.stringify(info, null, 4)}`);
+                }
+                return Promise.reject(`Got server contacting elasticsearch server`);
+            })
+            .catch(err => {
+                return Promise.reject(`Can't connecto to the server`);
+            })
     }
 
     public logt(index: string, message: any, mappings?: Mappings, type = "doc") {
@@ -63,7 +103,9 @@ export class Logging {
                 this.log(index, message, mappings, type);
             }, (e) => this.handleError(e));
         } else {
-            esindex.bulk += `{"index":{"_index":"${index}","_type":"${type}"}}\n`;
+            esindex.bulk += (this.esVersion.major >= 7)
+                ? `{"index":{"_index":"${index}"}}\n`
+                : `{"index":{"_index":"${index}","_type":"${type}"}}\n`;
             esindex.bulk += JSON.stringify(message) + '\n';
             esindex.bulkSize++;
         }
@@ -91,7 +133,7 @@ export class Logging {
                             headers: { "Content-Type": "application/x-ndjson" },
                             timeout: this.elasticRequestTimeout,
                         }).then(r => {
-                            return (r.response.statusCode === 200 && /"errors":(true|false)/.exec(r.body)[1] === "false") ? Promise.resolve() : Promise.reject(new Error(r.body));
+                            return (r.response.statusCode === 200 && (/"errors":(true|false)/.exec(r.body) || '')[1] === "false") ? Promise.resolve() : Promise.reject(new Error(r.body));
                         })
                     );
                     esindex.bulk = '';
@@ -114,22 +156,27 @@ export class Logging {
     private createIndex(index: string, type: string, properties: string): Promise<void> {
         const
             indexUrl = `http://${this.elasticServer}/${index}`,
-            mappingUrl = `${indexUrl}/_mapping/${type}`;
+            mappingUrl = (this.esVersion.major >= 7)
+                ? `${indexUrl}/_mapping`
+                : `${indexUrl}/_mapping/${type}`;
         // check if type exists
         return httpreq({
             url: mappingUrl,
-            method: 'HEAD',
+            method: 'GET',
             timeout: this.elasticRequestTimeout,
         }).then((r) => {
             if (r.response.statusCode === 200) {
-                // type exists
+                // index exists
                 return Promise.resolve();
             } else if (r.response.statusCode === 404) {
-                // type doesn't exist, create it
+                // index doesn't exist, create it
+                const payload = (this.esVersion.major >= 7)
+                    ? `{"mappings":{"properties":${properties}}}`
+                    : `{"mappings":{"${type}":{"properties":${properties}}}}`;
                 return httpreq({
                     url: indexUrl,
                     method: 'PUT',
-                    payload: `{"mappings":{"${type}":{"properties":${properties}}}}`,
+                    payload,
                     headers: { "Content-Type": "application/json" },
                     timeout: this.elasticRequestTimeout,
                 }).then(r => (r.response.statusCode !== 200) ? Promise.reject("Can't create indice") : Promise.resolve());

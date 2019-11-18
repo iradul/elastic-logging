@@ -22,9 +22,9 @@
   },
   "homepage": "https://github.com/iradul/elastic-log#readme",
   "dependencies": {
-    "h2tp": "^1.1.0"
+    "h2tp": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^9.4.0"
+    "@types/node": "^12.12.8"
   }
 }
