@@ -17,9 +17,9 @@
   "author": "Ivan Radulovic",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/iradul/elastic-log/issues"
+    "url": "https://github.com/iradul/elastic-logging/issues"
   },
-  "homepage": "https://github.com/iradul/elastic-log#readme",
+  "homepage": "https://github.com/iradul/elastic-logging#readme",
   "dependencies": {
     "h2tp": "^2.1.0"
   },
