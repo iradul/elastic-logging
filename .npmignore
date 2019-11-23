@@ -1,3 +1,4 @@
+.vscode/
 node_modules/
 package-lock.json
 .npmignore
@@ -6,3 +7,4 @@ index.ts
 index.js.map
 tsconfig.json
 README.md
+test*

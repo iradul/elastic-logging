@@ -1,13 +1,14 @@
 {
   "name": "elastic-logging",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Log directly to ElasticSearch",
   "main": "index.js",
   "scripts": {
+    "prepack": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iradul/elastic-log.git"
+    "url": "git+https://github.com/iradul/elastic-logging.git"
   },
   "keywords": [
     "ElasticSearch",
