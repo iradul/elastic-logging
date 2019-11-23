@@ -94,7 +94,7 @@ export class Logger {
     public indexSplitInterval = 3600000;
 
     private dying = false;
-    private autoFlushTID: any;
+    private autoFlushTID: any = null;
     private cleanUpTID: any;
     private indexBulks: Map<string, ESBulk> = new Map();
     private nonEmptyBulks: Set<string> = new Set();
@@ -155,7 +155,6 @@ export class Logger {
 
     /**Flush logs to Elasticsearch */
     public flush() {
-console.log(`size ${this.nonEmptyBulks.size}`)
         if (this.nonEmptyBulks.size === 0) {
             return Promise.resolve();
         } else {
@@ -163,7 +162,6 @@ console.log(`size ${this.nonEmptyBulks.size}`)
             this.nonEmptyBulks.forEach(index => {
                 const b = this.indexBulks.get(index);
                 if (b && b.bulkSize > 0) {
-console.log(`doing push ${b.bulkSize}`)
                     all.push(
                         httpreq({
                             url: `http://${this.esHost}/_bulk`,
