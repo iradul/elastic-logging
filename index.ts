@@ -224,7 +224,7 @@ export class Logger {
     private autoFlush() {
         if (this.autoFlushTID === null) {
             this.autoFlushTID = setInterval(() => {
-                this.flush();
+                this.flush().catch(err => this.handleError(err));
                 this.autoFlush();
             }, this.flushInterval);
         }
