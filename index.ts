@@ -1,7 +1,7 @@
 import { httpreq } from 'h2tp';
 
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
-interface IBaseFieldMapping {
+interface IBaseField {
     analyzer?: string;
     boost?: number;
     coerce?: boolean;
@@ -14,26 +14,28 @@ interface IBaseFieldMapping {
     ignore_malformed?: boolean;
     index_options?: 'docs' | 'freqs' | 'positions' | 'offsets';
     index_prefixes?: {
-        min_chars : number;
-        max_chars : number;
+        min_chars: number;
+        max_chars: number;
     };
     index?: boolean;
     null_value?: any;
-    properties?: IBaseFieldMapping;
     search_analyzer?: string;
     similarity?: 'BM25' | 'classic' | 'boolean';
     store?: boolean;
     term_vector?: 'no' | 'yes' | 'with_offsets' | 'with_positions' | 'with_positions_offsets' | 'with_positions_payloads' | 'with_positions_offsets_payloads';
     type: "text" | "keyword" | "date" | "long" | "double" | "boolean" | "ip" | "object" | "nested" | "geo_point" | "geo_shape" | "completion";
 }
-
-export interface IFieldProps extends IBaseFieldMapping {
-    fields?: IBaseFieldMapping;
+interface IBaseWithFieldsField extends IBaseField {
+    fields?: {[field: string]: IBaseField};
+}
+interface IPropertiesField {
+    properties: MappingProperties;
 }
 
-export type MappingProperties = {
-    [field: string]: IFieldProps;
-}
+export type IField = IBaseWithFieldsField | IPropertiesField;
+export declare type MappingProperties = {
+    [field: string]: IField;
+};
 
 interface ESBulk {
     bulk: string;
